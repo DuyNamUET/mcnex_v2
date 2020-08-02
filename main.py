@@ -50,6 +50,8 @@ class Thread(QThread):
                 # send image
                 self.img.emit(resize_img)
                 ser.write(data_cam.encode('utf-8'))
+                # send data of Camera
+                self.data.emit(data_cam)
             elif cmd == '1':
                 # self.statistic.emit("1")
                 print('1')
@@ -57,8 +59,6 @@ class Thread(QThread):
                 # self.statistic.emit("0") 
                 print('0')
             
-            # send data of Camera
-            # self.data.emit(data_cam)
             time.sleep(1)
             self.rawCapture.truncate(0)
 
@@ -73,6 +73,7 @@ class App(QWidget):
         self.number_total = 0
         self.number_success = 0
         self.number_error = 0
+        self.count = 0
 
         global ser
 
@@ -117,15 +118,15 @@ class App(QWidget):
         th = Thread(self)
         th.img.connect(self.update_image)
         th.data.connect(self.update_data)
-        # th.statistic(self.update_statistic)
-        th.start()
+        th.statistic(self.update_statistic)
+        # th.start()
         self.cam.setStyleSheet("border-color: rgb(50, 130, 184);"
                                 "border-width: 5px;"
                                 "border-style: inset;")
 
         # Start button
         self.start_button = QPushButton("START",self)
-        self.start_button.setGeometry(150, 790, 180, 100)
+        self.start_button.setGeometry(1223, 810, 180, 100)
         self.start_button.clicked.connect(self.clickStartButton)
         self.start_button.setStyleSheet("background-color: rgb(67, 138, 94);"
                                         "font: bold 20px;"
@@ -136,7 +137,7 @@ class App(QWidget):
 
         # Stop button
         self.stop_button = QPushButton("STOP",self)
-        self.stop_button.setGeometry(410, 790, 180, 100)
+        self.stop_button.setGeometry(1483, 810, 180, 100)
         self.stop_button.clicked.connect(self.clickStopButton)
         self.stop_button.setStyleSheet("background-color: rgb(232, 80, 91);"
                                         "font: bold 20px;"
@@ -147,7 +148,7 @@ class App(QWidget):
 
         # Home button
         self.home_button = QPushButton("HOME",self)
-        self.home_button.setGeometry(410, 920, 180, 100)
+        self.home_button.setGeometry(1483, 950, 180, 100)
         self.home_button.clicked.connect(self.clickHomeButton)
         self.home_button.setStyleSheet("background-color: rgb(50, 130, 184);"
                                         "font: bold 20px;"
@@ -158,7 +159,7 @@ class App(QWidget):
 
         # Align button
         self.align_button = QPushButton("ALIGN",self)
-        self.align_button.setGeometry(150, 920, 180, 100)
+        self.align_button.setGeometry(1223, 950, 180, 100)
         self.align_button.clicked.connect(self.clickAlignButton)
         self.align_button.setStyleSheet("background-color: rgb(249, 210, 118);"
                                         "font: bold 20px;"
@@ -208,8 +209,8 @@ class App(QWidget):
             self.tray.append(table)
 
         # Statistics table
-        self.statistic_table = QTableWidget(4,7,self)
-        self.statistic_table.setGeometry(740, 780, 1130, 250)
+        self.statistic_table = QTableWidget(2,3,self)
+        self.statistic_table.setGeometry(46, 810, 648, 240)
         self.statistic_table.horizontalHeader().hide()
         self.statistic_table.verticalHeader().hide()
         self.statistic_table.setFont(self.font)
@@ -217,13 +218,13 @@ class App(QWidget):
                                             "border-width: 5px;"
                                             "border-style: inset;"
                                             "border-color: rgb(50, 130, 184);")
-        for j in range(7):
+        for j in range(2):
             self.statistic_table.setColumnWidth(j,160)
-        for j in range(4):
+        for j in range(3):
             self.statistic_table.setRowHeight(j,60)
         self.statistic_table.setItem(0,0,QTableWidgetItem("TOTAL"))
-        self.statistic_table.setItem(1,0,QTableWidgetItem("SUCCESS"))
-        self.statistic_table.setItem(2,0,QTableWidgetItem("EROR"))
+        self.statistic_table.setItem(0,1,QTableWidgetItem("SUCCESS"))
+        self.statistic_table.setItem(0,2,QTableWidgetItem("EROR"))
 
         self.show()
 
@@ -236,18 +237,29 @@ class App(QWidget):
         p = convertToQtFormat.scaled(648, 486, Qt.KeepAspectRatio)
         self.cam.setPixmap(QPixmap.fromImage(p))
     
+    def update_statistic(self, data):
+        self.number_total += 1
+        self.statistic_table.setItem(1,0,QTableWidgetItem(self.number_total))
+        if(cmd == '1'):
+            self.number_success += 1
+            self.statistic_table.setItem
+            self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_success))
+        elif (cmd == '0'):
+            self.number_error += 1
+            self.statistic_table.setItem
+            self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_error))
+
     def update_data(self, data):
-        pass
-        # count = 0
-        # for k in range(4):
-        #     for j in range(3):
-        #         for i in range(6,-1,-1):
-        #             self.tray[k].setItem(i,j,QTableWidgetItem())
-        #             if(data[count]):
-        #                 self.tray[k].setBackground(QColor(0,208,0))
-        #             else:
-        #                 self.tray[k].setBackground(QColor(250,30,50))
-        #             count += 1
+        count = 0
+        for k in range(4):
+            for j in range(3):
+                for i in range(6,-1,-1):
+                    self.tray[k].setItem(i,j,QTableWidgetItem())
+                    if(data[count]):
+                        self.tray[k].setBackground(QColor(0,208,0))
+                    else:
+                        self.tray[k].setBackground(QColor(250,30,50))
+                    count += 1
 
     def updateTimer(self):
         cr_time = QTime.currentTime()
@@ -256,10 +268,12 @@ class App(QWidget):
 
     def clickStartButton(self):
         print("START")
+        th.start()
         ser.write("a".encode('utf-8'))
 
     def clickStopButton(self):
         print("STOP")
+        th.quit()
         ser.write("o".encode('utf-8'))
 
     def clickHomeButton(self):
