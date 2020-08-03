@@ -38,35 +38,41 @@ class Thread(QThread):
 
         # time to get camera warm up
         time.sleep(0.2)
-        while True:
-            # self.camera.capture(self.rawCapture, format="bgr")
-            # image = self.rawCapture.array
-            # resize_img = cv2.resize(image, (972,729))
+        while True:           
+            # cmd = receive_from_mega(ser)
+            cmd = "9"
+            if cmd == "9":
+                cam = np.zeros(84)
+                for _ in range(3):
+                    self.camera.capture(self.rawCapture, format="bgr")
+                    image = self.rawCapture.array
+                    resize_img = cv2.resize(image, (972,729))
 
-            # data_cam = detectYesNo.runDetectImage(resize_img)
-            
-            cmd = receive_from_mega(ser)
-            if cmd == "9" or cmd == "99" or cmd == "999":
-                self.camera.capture(self.rawCapture, format="bgr")
-                image = self.rawCapture.array
-                resize_img = cv2.resize(image, (972,729))
-
-                data_cam = detectYesNo.runDetectImage(resize_img)
+                    cam += detectYesNo.runDetectImage(resize_img)
+                    time.sleep(0.3)
+                    self.rawCapture.truncate(0)
+                    if _ == 2:
+                        self.img.emit(resize_img)
+                    
+                cam = np.rint(cam/3)
+                cam = np.array(cam, dtype=int)
+                data_cam = str(cam)[1:-1].replace(", ", '').replace(' ', '').replace('\n','')
+                print(data_cam)
                 # send image
-                self.img.emit(resize_img)
+                # self.img.emit(resize_img)
                 ser.write(data_cam.encode('utf-8'))
                 # send data of Camera
-                print(data_cam)
                 self.data.emit(data_cam)
-            elif cmd == '1':
+
+                
+            elif cmd == "1":
                 self.statistic.emit("1")
                 print('1')
-            elif cmd == '0':
+            elif cmd == "0":
                 self.statistic.emit("0") 
                 print('0')
             
-            time.sleep(1)
-            self.rawCapture.truncate(0)
+            time.sleep(5)
 
 
 class App(QWidget):

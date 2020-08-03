@@ -159,7 +159,7 @@ def testWithImage(dir, ext=["png", "jpg"]):
 
 def runDetectImage(img):
     areas = pickle.load(open("center.txt", 'rb'))
-    data = ""  # data of center 
+    data = np.array([])  # data of center 
     count = 0
     for area in areas:
         roi = img[area[0][1]:area[1][1], area[0][0]:area[1][0]]
@@ -167,10 +167,10 @@ def runDetectImage(img):
                             "new_cropped/cam/{}".format(count))
         if th > 0:
             # img = cv2.rectangle(img, area[0], area[1], (0, 255, 0), 1)
-            data += '1'
+            data = np.append(data, np.array([1]))
         else:
             # img = cv2.rectangle(img, area[0], area[1], (0, 0, 255), 1)
-            data += '0'
+            data = np.append(data, np.array([0]))
         count += 1
     return data
 
