@@ -39,24 +39,30 @@ class Thread(QThread):
         # time to get camera warm up
         time.sleep(0.2)
         while True:
-            self.camera.capture(self.rawCapture, format="bgr")
-            image = self.rawCapture.array
-            resize_img = cv2.resize(image, (972,729))
+            # self.camera.capture(self.rawCapture, format="bgr")
+            # image = self.rawCapture.array
+            # resize_img = cv2.resize(image, (972,729))
 
-            data_cam = detectYesNo.runDetectImage(resize_img)
+            # data_cam = detectYesNo.runDetectImage(resize_img)
             
             cmd = receive_from_mega(ser)
-            if cmd == '9':
+            if cmd == "9" or cmd == "99" or cmd == "999":
+                self.camera.capture(self.rawCapture, format="bgr")
+                image = self.rawCapture.array
+                resize_img = cv2.resize(image, (972,729))
+
+                data_cam = detectYesNo.runDetectImage(resize_img)
                 # send image
                 self.img.emit(resize_img)
                 ser.write(data_cam.encode('utf-8'))
                 # send data of Camera
+                print(data_cam)
                 self.data.emit(data_cam)
             elif cmd == '1':
-                # self.statistic.emit("1")
+                self.statistic.emit("1")
                 print('1')
             elif cmd == '0':
-                # self.statistic.emit("0") 
+                self.statistic.emit("0") 
                 print('0')
             
             time.sleep(1)
@@ -71,6 +77,7 @@ class App(QWidget):
         self.width = 1920; self.height = 1080 # full HD screen
         
         self.number_total = 0
+        self.number_nocam = 0
         self.number_success = 0
         self.number_error = 0
         self.count = 0
@@ -115,18 +122,18 @@ class App(QWidget):
                                     "font: bold 14pt;")
         self.cam = QLabel(self)
         self.cam.setGeometry(46, 254, 648, 486)
-        th = Thread(self)
-        th.img.connect(self.update_image)
-        th.data.connect(self.update_data)
-        th.statistic(self.update_statistic)
-        # th.start()
+        self.th = Thread(self)
+        self.th.img.connect(self.update_image)
+        self.th.data.connect(self.update_data)
+        self.th.statistic.connect(self.update_statistic)
+        # self.th.start()
         self.cam.setStyleSheet("border-color: rgb(50, 130, 184);"
                                 "border-width: 5px;"
                                 "border-style: inset;")
 
         # Start button
         self.start_button = QPushButton("START",self)
-        self.start_button.setGeometry(1223, 810, 180, 100)
+        self.start_button.setGeometry(1223, 780, 180, 100)
         self.start_button.clicked.connect(self.clickStartButton)
         self.start_button.setStyleSheet("background-color: rgb(67, 138, 94);"
                                         "font: bold 20px;"
@@ -137,7 +144,7 @@ class App(QWidget):
 
         # Stop button
         self.stop_button = QPushButton("STOP",self)
-        self.stop_button.setGeometry(1483, 810, 180, 100)
+        self.stop_button.setGeometry(1483, 780, 180, 100)
         self.stop_button.clicked.connect(self.clickStopButton)
         self.stop_button.setStyleSheet("background-color: rgb(232, 80, 91);"
                                         "font: bold 20px;"
@@ -148,7 +155,7 @@ class App(QWidget):
 
         # Home button
         self.home_button = QPushButton("HOME",self)
-        self.home_button.setGeometry(1483, 950, 180, 100)
+        self.home_button.setGeometry(1483, 920, 180, 100)
         self.home_button.clicked.connect(self.clickHomeButton)
         self.home_button.setStyleSheet("background-color: rgb(50, 130, 184);"
                                         "font: bold 20px;"
@@ -158,8 +165,8 @@ class App(QWidget):
                                         "border-radius: 5px;")
 
         # Align button
-        self.align_button = QPushButton("ALIGN",self)
-        self.align_button.setGeometry(1223, 950, 180, 100)
+        self.align_button = QPushButton("CALIBRATE",self)
+        self.align_button.setGeometry(1223, 920, 180, 100)
         self.align_button.clicked.connect(self.clickAlignButton)
         self.align_button.setStyleSheet("background-color: rgb(249, 210, 118);"
                                         "font: bold 20px;"
@@ -210,21 +217,28 @@ class App(QWidget):
 
         # Statistics table
         self.statistic_table = QTableWidget(2,3,self)
-        self.statistic_table.setGeometry(46, 810, 648, 240)
+        self.statistic_table.setGeometry(46, 780, 648, 170)
         self.statistic_table.horizontalHeader().hide()
         self.statistic_table.verticalHeader().hide()
         self.statistic_table.setFont(self.font)
         self.statistic_table.setStyleSheet("color: rgb(255, 255, 255);"
+                                            "text-align: center;"
                                             "border-width: 5px;"
                                             "border-style: inset;"
                                             "border-color: rgb(50, 130, 184);")
-        for j in range(2):
-            self.statistic_table.setColumnWidth(j,160)
         for j in range(3):
-            self.statistic_table.setRowHeight(j,60)
-        self.statistic_table.setItem(0,0,QTableWidgetItem("TOTAL"))
-        self.statistic_table.setItem(0,1,QTableWidgetItem("SUCCESS"))
-        self.statistic_table.setItem(0,2,QTableWidgetItem("EROR"))
+            self.statistic_table.setColumnWidth(j,212)
+        for j in range(2):
+            self.statistic_table.setRowHeight(j,80)
+        total_item = QTableWidgetItem("TOTAL")
+        total_item.setTextAlignment(Qt.AlignCenter)
+        self.statistic_table.setItem(0,0,total_item)
+        success_item = QTableWidgetItem("SUCCESS")
+        success_item.setTextAlignment(Qt.AlignCenter)
+        self.statistic_table.setItem(0,1,success_item)
+        error_item = QTableWidgetItem("ERROR")
+        error_item.setTextAlignment(Qt.AlignCenter)
+        self.statistic_table.setItem(0,2,error_item)
 
         self.show()
 
@@ -239,26 +253,31 @@ class App(QWidget):
     
     def update_statistic(self, data):
         self.number_total += 1
+        idx, cmd = data.split(',')
+        tray_idx = idx % 21
+        i = 6 - idx // 21 % 7
+        j = idx // 21 // 7
         self.statistic_table.setItem(1,0,QTableWidgetItem(self.number_total))
         if(cmd == '1'):
+            self.tray[tray_idx].setItem(i,j,QTableWidgetItem("OK"))
             self.number_success += 1
-            self.statistic_table.setItem
             self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_success))
         elif (cmd == '0'):
+            self.tray[tray_idx].setItem(i,j,QTableWidgetItem("NG"))
             self.number_error += 1
-            self.statistic_table.setItem
             self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_error))
 
     def update_data(self, data):
+        self.cam_data = data
         count = 0
         for k in range(4):
             for j in range(3):
                 for i in range(6,-1,-1):
                     self.tray[k].setItem(i,j,QTableWidgetItem())
-                    if(data[count]):
-                        self.tray[k].setBackground(QColor(0,208,0))
+                    if(int(data[count])):
+                        self.tray[k].item(i,j).setBackground(QColor(0,208,0))
                     else:
-                        self.tray[k].setBackground(QColor(250,30,50))
+                        self.tray[k].item(i,j).setBackground(QColor(250,30,50))
                     count += 1
 
     def updateTimer(self):
@@ -268,12 +287,12 @@ class App(QWidget):
 
     def clickStartButton(self):
         print("START")
-        th.start()
+        self.th.start()
         ser.write("a".encode('utf-8'))
 
     def clickStopButton(self):
         print("STOP")
-        th.quit()
+        self.th.quit()
         ser.write("o".encode('utf-8'))
 
     def clickHomeButton(self):
@@ -281,16 +300,17 @@ class App(QWidget):
         ser.write("h".encode('utf-8'))
     
     def clickAlignButton(self):
-        print("ALIGN")
-        # alignWindow = AlignWindow()
-        # alignWindow.__init__()
+        print("CALIBRATE")
+        self.alignWindow = AlignWindow()
+        # self.alignWindow.__init__()
+        self.alignWindow.show()
 
 class AlignWindow(QWidget):
     def __init__(self):
-        super().__init__(None, Qt.WindowStaysOnTopHint)
-        self.title = "ALIGNMENT"
+        super(AlignWindow, self).__init__(None, Qt.WindowStaysOnTopHint)
+        self.title = "CALIBRATION"
         self.left = 1000; self.top = 400
-        self.width = 250; self.height = 250
+        self.width = 500; self.height = 500
 
         self.initUI()
     
@@ -302,7 +322,8 @@ class AlignWindow(QWidget):
 
         # OK button
         self.up_button = QPushButton("⇧",self)
-        self.up_button.setGeometry(95, 35, 60, 60)
+        self.up_button.setGeometry(190, 70, 120, 120)
+        self.up_button.clicked.connect(self.clickUpButton)
         self.up_button.setStyleSheet("background-color: rgb(50, 130, 184);"
                                     "font: bold 50px;"
                                     "color:rgb(255, 255, 255);"
@@ -311,7 +332,8 @@ class AlignWindow(QWidget):
                                     "border-radius: 5px;")
         
         self.down_button = QPushButton("⇩",self)
-        self.down_button.setGeometry(95, 155, 60, 60)
+        self.down_button.setGeometry(190, 310, 120, 120)
+        self.down_button.clicked.connect(self.clickDownButton)
         self.down_button.setStyleSheet("background-color: rgb(50, 130, 184);"
                                     "font: bold 50px;"
                                     "color:rgb(255, 255, 255);"
@@ -320,7 +342,8 @@ class AlignWindow(QWidget):
                                     "border-radius: 5px;")
         
         self.left_button = QPushButton("⇦",self)
-        self.left_button.setGeometry(35, 95, 60, 60)
+        self.left_button.setGeometry(70, 190, 120, 120)
+        self.left_button.clicked.connect(self.clickLeftButton)
         self.left_button.setStyleSheet("background-color: rgb(50, 130, 184);"
                                     "font: bold 50px;"
                                     "color:rgb(255, 255, 255);"
@@ -329,7 +352,8 @@ class AlignWindow(QWidget):
                                     "border-radius: 5px;")
         
         self.right_button = QPushButton("⇨",self)
-        self.right_button.setGeometry(155, 95, 60, 60)
+        self.right_button.setGeometry(310, 190, 120, 120)
+        self.right_button.clicked.connect(self.clickRightButton)
         self.right_button.setStyleSheet("background-color: rgb(50, 130, 184);"
                                     "font: bold 50px;"
                                     "color:rgb(255, 255, 255);"
@@ -342,13 +366,13 @@ class AlignWindow(QWidget):
     @pyqtSlot()
 
     def clickUpButton(self):
-        pass
+        print("UP")
     def clickDownButton(self):
-        pass
+        print("DOWN")
     def clickLeftButton(self):
-        pass
+        print("LEFT")
     def clickRightButton(self):
-        pass
+        print("RIGHT")
 
 
 if __name__ == '__main__':

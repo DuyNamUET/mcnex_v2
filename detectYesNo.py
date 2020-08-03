@@ -166,17 +166,17 @@ def runDetectImage(img):
         th = having_cam(roi, "new_cropped/no_cam/{}".format(count),\
                             "new_cropped/cam/{}".format(count))
         if th > 0:
-            img = cv2.rectangle(img, area[0], area[1], (0, 255, 0), 1)
+            # img = cv2.rectangle(img, area[0], area[1], (0, 255, 0), 1)
             data += '1'
         else:
-            img = cv2.rectangle(img, area[0], area[1], (0, 0, 255), 1)
+            # img = cv2.rectangle(img, area[0], area[1], (0, 0, 255), 1)
             data += '0'
         count += 1
     return data
 
 # if __name__ == "__main__":
     # WARNING - Get area to processing
-    # # get_mask("image/cam/0.png")
+    # get_mask("image/cam/0.png")
     # get_data_with_fixed_coords(top_dir="image/cam", out_dir="new_cropped/cam")
     # get_data_with_fixed_coords(top_dir="image/no_cam", out_dir="new_cropped/no_cam")
     
