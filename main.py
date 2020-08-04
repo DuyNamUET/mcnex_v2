@@ -11,6 +11,7 @@ import time
 import serial
 
 import detectYesNo
+import read_file
 
 ser = serial.Serial('/dev/ttyACM0', 9600, timeout=0.1)
 ser.flush()
@@ -37,10 +38,10 @@ class Thread(QThread):
         global ser
 
         # time to get camera warm up
-        time.sleep(0.2)
+        time.sleep(0.5)
         while True:           
-            # cmd = receive_from_mega(ser)
-            cmd = "9"
+            cmd = receive_from_mega(ser)
+            # cmd = "9"
             if cmd == "9":
                 cam = np.zeros(84)
                 for _ in range(3):
@@ -49,19 +50,19 @@ class Thread(QThread):
                     resize_img = cv2.resize(image, (972,729))
 
                     cam += detectYesNo.runDetectImage(resize_img)
-                    time.sleep(0.3)
+                    time.sleep(0.25)
                     self.rawCapture.truncate(0)
                     if _ == 2:
+                        # send image
                         self.img.emit(resize_img)
                     
                 cam = np.rint(cam/3)
                 cam = np.array(cam, dtype=int)
                 data_cam = str(cam)[1:-1].replace(", ", '').replace(' ', '').replace('\n','')
                 print(data_cam)
-                # send image
-                # self.img.emit(resize_img)
-                ser.write(data_cam.encode('utf-8'))
+                
                 # send data of Camera
+                ser.write(data_cam.encode('utf-8'))
                 self.data.emit(data_cam)
 
                 
@@ -83,9 +84,12 @@ class App(QWidget):
         self.width = 1920; self.height = 1080 # full HD screen
         
         self.number_total = 0
-        self.number_nocam = 0
-        self.number_success = 0
         self.number_error = 0
+        self.number_success = 0
+        
+        self.date, self.time = read_file.get_date_time()
+        read_file.save_current_time(self.date, self.time)
+
         self.count = 0
 
         global ser
@@ -171,14 +175,25 @@ class App(QWidget):
                                         "border-radius: 5px;")
 
         # Align button
-        self.align_button = QPushButton("CALIBRATE",self)
-        self.align_button.setGeometry(1223, 920, 180, 100)
-        self.align_button.clicked.connect(self.clickAlignButton)
-        self.align_button.setStyleSheet("background-color: rgb(249, 210, 118);"
+        self.reset_button = QPushButton("RESET",self)
+        self.reset_button.setGeometry(1223, 920, 180, 100)
+        self.reset_button.clicked.connect(self.clickResetButton)
+        self.reset_button.setStyleSheet("background-color: rgb(249, 210, 118);"
                                         "font: bold 20px;"
                                         "color:rgb(255, 255, 255);"
                                         "border-width: 5px;"
                                         "border-color: rgb(249, 210, 118);"
+                                        "border-radius: 5px;")
+
+        # Align button
+        self.align_button = QPushButton("CALIBRATE",self)
+        self.align_button.setGeometry(907, 780, 239, 239)
+        self.align_button.clicked.connect(self.clickAlignButton)
+        self.align_button.setStyleSheet("background-color: rgb(50, 130, 184);"
+                                        "font: bold 20px;"
+                                        "color:rgb(255, 255, 255);"
+                                        "border-width: 5px;"
+                                        "border-color: rgb(50, 130, 184);"
                                         "border-radius: 5px;")
 
         # Set font
@@ -258,20 +273,21 @@ class App(QWidget):
         self.cam.setPixmap(QPixmap.fromImage(p))
     
     def update_statistic(self, data):
-        self.number_total += 1
-        idx, cmd = data.split(',')
-        tray_idx = idx % 21
-        i = 6 - idx // 21 % 7
-        j = idx // 21 // 7
-        self.statistic_table.setItem(1,0,QTableWidgetItem(self.number_total))
-        if(cmd == '1'):
-            self.tray[tray_idx].setItem(i,j,QTableWidgetItem("OK"))
-            self.number_success += 1
-            self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_success))
-        elif (cmd == '0'):
-            self.tray[tray_idx].setItem(i,j,QTableWidgetItem("NG"))
-            self.number_error += 1
-            self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_error))
+        pass
+        # self.number_total += 1
+        # idx, cmd = data.split(',')
+        # tray_idx = idx % 21
+        # i = 6 - idx // 21 % 7
+        # j = idx // 21 // 7
+        # self.statistic_table.setItem(1,0,QTableWidgetItem(self.number_total))
+        # if(cmd == '1'):
+        #     self.tray[tray_idx].setItem(i,j,QTableWidgetItem("OK"))
+        #     self.number_success += 1
+        #     self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_success))
+        # elif (cmd == '0'):
+        #     self.tray[tray_idx].setItem(i,j,QTableWidgetItem("NG"))
+        #     self.number_error += 1
+        #     self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_error))
 
     def update_data(self, data):
         self.cam_data = data
@@ -295,15 +311,23 @@ class App(QWidget):
         print("START")
         self.th.start()
         ser.write("a".encode('utf-8'))
+        self.number_total, self.number_success, self.number_error = read_file.get_data_from_file(self.date, self.time)
 
     def clickStopButton(self):
         print("STOP")
         self.th.quit()
         ser.write("o".encode('utf-8'))
+        read_file.write_data_to_file(self.date, self.time, (self.number_total, self.number_success, self.number_error))
 
     def clickHomeButton(self):
         print("HOME")
         ser.write("h".encode('utf-8'))
+
+    def clickResetButton(self):
+        print("RESET")
+        # ser.write("r".encode('utf-8'))
+        self.date, self.time = read_file.get_date_time()
+        read_file.save_current_time(self.date, self.time)
     
     def clickAlignButton(self):
         print("CALIBRATE")
