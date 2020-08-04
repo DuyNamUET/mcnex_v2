@@ -174,27 +174,16 @@ class App(QWidget):
                                         "border-color: rgb(50, 130, 184);"
                                         "border-radius: 5px;")
 
-        # Align button
-        self.reset_button = QPushButton("RESET",self)
-        self.reset_button.setGeometry(1223, 920, 180, 100)
-        self.reset_button.clicked.connect(self.clickResetButton)
-        self.reset_button.setStyleSheet("background-color: rgb(249, 210, 118);"
-                                        "font: bold 20px;"
-                                        "color:rgb(255, 255, 255);"
-                                        "border-width: 5px;"
-                                        "border-color: rgb(249, 210, 118);"
-                                        "border-radius: 5px;")
-
-        # Align button
-        self.align_button = QPushButton("CALIBRATE",self)
-        self.align_button.setGeometry(907, 780, 239, 239)
-        self.align_button.clicked.connect(self.clickAlignButton)
-        self.align_button.setStyleSheet("background-color: rgb(50, 130, 184);"
-                                        "font: bold 20px;"
-                                        "color:rgb(255, 255, 255);"
-                                        "border-width: 5px;"
-                                        "border-color: rgb(50, 130, 184);"
-                                        "border-radius: 5px;")
+        # Calibrate button
+        self.calibrate_button = QPushButton("CALIBRATE",self)
+        self.calibrate_button.setGeometry(1223, 920, 180, 100)
+        self.calibrate_button.clicked.connect(self.clickAlignButton)
+        self.calibrate_button.setStyleSheet("background-color: rgb(249, 210, 118);"
+                                            "font: bold 20px;"
+                                            "color:rgb(255, 255, 255);"
+                                            "border-width: 5px;"
+                                            "border-color: rgb(249, 210, 118);"
+                                            "border-radius: 5px;")
 
         # Set font
         self.font = QFont()
@@ -288,6 +277,11 @@ class App(QWidget):
             self.number_error += 1
             self.statistic_table.setItem(1,2,QTableWidgetItem(self.number_error))
             self.tray[tray_idx].setItem(row, col, QTableWidgetItem("NG"))
+        if self.count == 84:
+            self.date, self.time = read_file.get_date_time()
+            read_file.save_current_time(self.date, self.time)
+            self.number_total = 0; self.number_success = 0; self.number_error = 0
+            self.count = 0
 
     def update_data(self, data):
         # Update data to table
@@ -329,13 +323,12 @@ class App(QWidget):
         print("HOME")
         ser.write("h".encode('utf-8'))
 
-    def clickResetButton(self):
-        print("RESET")
-        # ser.write("r".encode('utf-8'))
-        self.date, self.time = read_file.get_date_time()
-        read_file.save_current_time(self.date, self.time)
-        self.number_total = 0; self.number_success = 0; self.number_error = 0
-        self.count = 0
+    # def reset(self):
+    #     print("RESET")
+    #     self.date, self.time = read_file.get_date_time()
+    #     read_file.save_current_time(self.date, self.time)
+    #     self.number_total = 0; self.number_success = 0; self.number_error = 0
+    #     self.count = 0
     
     def clickAlignButton(self):
         print("CALIBRATE")
