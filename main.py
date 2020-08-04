@@ -274,20 +274,7 @@ class App(QWidget):
     
     def update_statistic(self, data):
         pass
-        # self.number_total += 1
-        # idx, cmd = data.split(',')
-        # tray_idx = idx % 21
-        # i = 6 - idx // 21 % 7
-        # j = idx // 21 // 7
-        # self.statistic_table.setItem(1,0,QTableWidgetItem(self.number_total))
-        # if(cmd == '1'):
-        #     self.tray[tray_idx].setItem(i,j,QTableWidgetItem("OK"))
-        #     self.number_success += 1
-        #     self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_success))
-        # elif (cmd == '0'):
-        #     self.tray[tray_idx].setItem(i,j,QTableWidgetItem("NG"))
-        #     self.number_error += 1
-        #     self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_error))
+        # self self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_error))
 
     def update_data(self, data):
         self.cam_data = data
