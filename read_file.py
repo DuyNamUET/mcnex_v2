@@ -35,7 +35,8 @@ def write_data_to_file(date, time, data):
     f.seek(0)
     f.write("Total camera tested: {}\n".format(data[0]))
     f.write("Number camera success: {}\n".format(data[1]))
-    f.write("Total camera error: {}\n".format(data[2]))
+    f.write("Number camera error: {}\n".format(data[2]))
+    f.write("---------------\n")
     f.close()
 
 def save_current_time(date, time):

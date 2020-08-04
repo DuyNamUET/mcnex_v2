@@ -24,7 +24,7 @@ def receive_from_mega(ser):
 
 class Thread(QThread):
     img = pyqtSignal(np.ndarray)
-    data = pyqtSignal(str)
+    data = pyqtSignal(np.ndarray)
     statistic = pyqtSignal(str)
     
     def run(self):
@@ -58,12 +58,12 @@ class Thread(QThread):
                     
                 cam = np.rint(cam/3)
                 cam = np.array(cam, dtype=int)
-                data_cam = str(cam)[1:-1].replace(", ", '').replace(' ', '').replace('\n','')
-                print(data_cam)
+                # data_cam = str(cam)[1:-1].replace(", ", '').replace(' ', '').replace('\n','')
+                # print(data_cam)
                 
                 # send data of Camera
-                ser.write(data_cam.encode('utf-8'))
-                self.data.emit(data_cam)
+                # ser.write(data_cam.encode('utf-8'))
+                self.data.emit(cam)
 
                 
             elif cmd == "1":
@@ -84,8 +84,8 @@ class App(QWidget):
         self.width = 1920; self.height = 1080 # full HD screen
         
         self.number_total = 0
-        self.number_error = 0
         self.number_success = 0
+        self.number_error = 0
         
         self.date, self.time = read_file.get_date_time()
         read_file.save_current_time(self.date, self.time)
@@ -273,21 +273,39 @@ class App(QWidget):
         self.cam.setPixmap(QPixmap.fromImage(p))
     
     def update_statistic(self, data):
-        pass
-        # self self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_error))
+        self.number_total += 1
+        while(self.data_cam != "1"):
+            self.count += 1
+            
+        tray_idx = self.count % 21
+        row = 6 - self.count % 21 % 7
+        col = self.count % 21 // 7
+        if(data == "1"):
+            self.number_success += 1
+            self.statistic_table.setItem(1,1,QTableWidgetItem(self.number_error))
+            self.tray[tray_idx].setItem(row, col, QTableWidgetItem("OK"))
+        else:
+            self.number_error += 1
+            self.statistic_table.setItem(1,2,QTableWidgetItem(self.number_error))
+            self.tray[tray_idx].setItem(row, col, QTableWidgetItem("NG"))
 
     def update_data(self, data):
-        self.cam_data = data
-        count = 0
+        # Update data to table
+        c = 0
         for k in range(4):
             for j in range(3):
                 for i in range(6,-1,-1):
                     self.tray[k].setItem(i,j,QTableWidgetItem())
-                    if(int(data[count])):
+                    if(int(data[c])):
                         self.tray[k].item(i,j).setBackground(QColor(0,208,0))
                     else:
                         self.tray[k].item(i,j).setBackground(QColor(250,30,50))
-                    count += 1
+                    c += 1
+        # Update current data
+        data[:self.count] = 0
+        data_cam = str(data)[1:-1].replace(", ", '').replace(' ', '').replace('\n','')
+        self.cam_data = data
+        ser.write(data_cam.encode('utf-8'))
 
     def updateTimer(self):
         cr_time = QTime.currentTime()
@@ -299,6 +317,7 @@ class App(QWidget):
         self.th.start()
         ser.write("a".encode('utf-8'))
         self.number_total, self.number_success, self.number_error = read_file.get_data_from_file(self.date, self.time)
+        ser.write(self.count.encode('utf-8'))
 
     def clickStopButton(self):
         print("STOP")
@@ -315,6 +334,8 @@ class App(QWidget):
         # ser.write("r".encode('utf-8'))
         self.date, self.time = read_file.get_date_time()
         read_file.save_current_time(self.date, self.time)
+        self.number_total = 0; self.number_success = 0; self.number_error = 0
+        self.count = 0
     
     def clickAlignButton(self):
         print("CALIBRATE")
