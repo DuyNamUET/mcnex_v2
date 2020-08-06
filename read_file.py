@@ -16,7 +16,7 @@ def get_data_from_file(date, time):
     if not os.path.exists(dir):
         os.makedirs(dir)
     name = "/home/pi/mcnex_v2/{}/{}.txt".format(dir, time)
-    f = open(name,'a+')
+    f = open(name,'w+')
     if os.stat(name).st_size == 0:
         f.write("Total camera tested: {}\n".format(total))
         f.write("Number camera success: {}\n".format(success))

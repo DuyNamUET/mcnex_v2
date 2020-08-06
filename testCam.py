@@ -11,7 +11,7 @@ if __name__ == "__main__":
     camera.iso = 800				    # set ISO to the desired value
     rawCapture = PiRGBArray(camera, size=camera.resolution)
     count = 0
-    time.sleep(1)
+    time.sleep(0.8)
     while True:
         camera.capture(rawCapture, format="bgr")
         image = rawCapture.array
