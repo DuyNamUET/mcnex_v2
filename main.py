@@ -9,12 +9,24 @@ import numpy as np
 import sys
 import time
 import serial
+import serial.tools.list_ports
 
 import detectYesNo
 import read_file
 
-ser = serial.Serial('/dev/ttyACM0', 9600, timeout=0.1)
+def get_serial_port():
+    ports = serial.tools.list_ports.comports()
+    for i in ports:
+        port = str(i).split(' ')[0]
+        # print(port)
+        if port == "/dev/ttyACM0" or port == "/dev/ttyACM1" or port == "/dev/tty    USB0":   
+            return port
+
+port = get_serial_port()
+print(port)
+ser = serial.Serial(port, 9600, timeout=0.1)
 ser.flush()
+
 def receive_from_mega(ser):
     if ser.in_waiting > 0:
         cmd = ser.readline().decode('utf-8').rstrip()
@@ -38,7 +50,7 @@ class Thread(QThread):
         global ser
 
         # time to get camera warm up
-        time.sleep(0.7)
+        time.sleep(0.5)
         while True:           
             cmd = receive_from_mega(ser)
             # cmd = "9"
@@ -88,6 +100,7 @@ class App(QWidget):
         self.number_error = 0
         
         self.date, self.time = read_file.get_date_time()
+        self.number_total, self.number_success, self.number_error = read_file.get_data_from_file(self.date, self.time)
         read_file.save_current_time(self.date, self.time)
 
         self.count = 0
@@ -125,13 +138,13 @@ class App(QWidget):
 
         # Camera area
         self.cam_name = QLabel("CAMERA", self)
-        self.cam_name.setGeometry(46, 199, 648, 55)
+        self.cam_name.setGeometry(65, 204, 570, 55)
         self.cam_name.setAlignment(Qt.AlignCenter)
         self.cam_name.setStyleSheet("background-color: rgb(50, 130, 184);"
                                     "color: rgb(255, 255, 255);"
                                     "font: bold 14pt;")
         self.cam = QLabel(self)
-        self.cam.setGeometry(46, 254, 648, 486)
+        self.cam.setGeometry(65, 259, 570, 760)
         self.th = Thread(self)
         self.th.img.connect(self.update_image)
         self.th.data.connect(self.update_data)
@@ -143,7 +156,7 @@ class App(QWidget):
 
         # Start button
         self.start_button = QPushButton("START",self)
-        self.start_button.setGeometry(1223, 780, 180, 100)
+        self.start_button.setGeometry(1615, 780, 220, 240)
         self.start_button.clicked.connect(self.clickStartButton)
         self.start_button.setStyleSheet("background-color: rgb(67, 138, 94);"
                                         "font: bold 20px;"
@@ -154,7 +167,7 @@ class App(QWidget):
 
         # Stop button
         self.stop_button = QPushButton("STOP",self)
-        self.stop_button.setGeometry(1483, 780, 180, 100)
+        self.stop_button.setGeometry(1400, 780, 180, 100)
         self.stop_button.clicked.connect(self.clickStopButton)
         self.stop_button.setStyleSheet("background-color: rgb(232, 80, 91);"
                                         "font: bold 20px;"
@@ -165,7 +178,7 @@ class App(QWidget):
 
         # Home button
         self.home_button = QPushButton("HOME",self)
-        self.home_button.setGeometry(1483, 920, 180, 100)
+        self.home_button.setGeometry(1400, 920, 180, 100)
         self.home_button.clicked.connect(self.clickHomeButton)
         self.home_button.setStyleSheet("background-color: rgb(50, 130, 184);"
                                         "font: bold 20px;"
@@ -176,7 +189,7 @@ class App(QWidget):
 
         # Reset button
         self.reset_button = QPushButton("RESET",self)
-        self.reset_button.setGeometry(1223, 920, 180, 100)
+        self.reset_button.setGeometry(1185, 780, 180, 100)
         self.reset_button.clicked.connect(self.clickResetButton)
         self.reset_button.setStyleSheet("background-color: rgb(249, 210, 118);"
                                         "font: bold 20px;"
@@ -187,7 +200,7 @@ class App(QWidget):
 
         # Calibrate button
         self.calibrate_button = QPushButton("CALIBRATE",self)
-        self.calibrate_button.setGeometry(907, 780, 239, 239)
+        self.calibrate_button.setGeometry(1185, 920, 180, 100)
         self.calibrate_button.clicked.connect(self.clickAlignButton)
         self.calibrate_button.setStyleSheet("background-color: rgb(50, 130, 184);"
                                             "font: bold 20px;"
@@ -203,13 +216,13 @@ class App(QWidget):
 
         # Table area
         self.table_area = QLabel(self)
-        self.table_area.setGeometry(740, 199, 1130, 541)
+        self.table_area.setGeometry(695, 204, 1140, 543)
         self.table_area.setStyleSheet("background-color: rgb(196, 196, 196);"
                                     "border-color: rgb(50, 130, 184);"
                                     "border-width: 5px;"
                                     "border-style: inset;")
         self.table_name = QLabel("INFORMATION", self)
-        self.table_name.setGeometry(740, 199, 1130, 55)
+        self.table_name.setGeometry(695, 204, 1140, 55)
         self.table_name.setAlignment(Qt.AlignCenter)
         self.table_name.setStyleSheet("background-color:rgb(50, 130, 184);"
                                     "color: rgb(255, 255, 255);"
@@ -219,13 +232,13 @@ class App(QWidget):
         self.tray = []
         for i in range(4):
             tray_name = QLabel("TRAY{}".format(i+1), self)
-            tray_name.setGeometry(773+275*i, 303, 242, 55)
+            tray_name.setGeometry(735+275*i, 303, 242, 55)
             tray_name.setAlignment(Qt.AlignCenter)
             tray_name.setStyleSheet("background-color:rgb(50, 130, 184);"
                                     "color: rgb(255, 255, 255);"
                                     "font: bold 14pt;")
             table = QTableWidget(7,3,self)
-            table.setGeometry(773+275*i,358,242,352)
+            table.setGeometry(735+275*i,358,242,352)
             table.horizontalHeader().hide()
             table.verticalHeader().hide()
             for j in range(3):
@@ -237,8 +250,8 @@ class App(QWidget):
             self.tray.append(table)
 
         # Statistics table
-        self.statistic_table = QTableWidget(2,3,self)
-        self.statistic_table.setGeometry(46, 780, 648, 170)
+        self.statistic_table = QTableWidget(3,2,self)
+        self.statistic_table.setGeometry(695, 780, 420, 240)
         self.statistic_table.horizontalHeader().hide()
         self.statistic_table.verticalHeader().hide()
         self.statistic_table.setFont(self.font)
@@ -247,19 +260,19 @@ class App(QWidget):
                                             "border-width: 5px;"
                                             "border-style: inset;"
                                             "border-color: rgb(50, 130, 184);")
-        for j in range(3):
-            self.statistic_table.setColumnWidth(j,212)
         for j in range(2):
-            self.statistic_table.setRowHeight(j,80)
+            self.statistic_table.setColumnWidth(j,205)
+        for j in range(3):
+            self.statistic_table.setRowHeight(j,76)
         total_item = QTableWidgetItem("TOTAL")
         total_item.setTextAlignment(Qt.AlignCenter)
         self.statistic_table.setItem(0,0,total_item)
         success_item = QTableWidgetItem("SUCCESS")
         success_item.setTextAlignment(Qt.AlignCenter)
-        self.statistic_table.setItem(0,1,success_item)
+        self.statistic_table.setItem(1,0,success_item)
         error_item = QTableWidgetItem("ERROR")
         error_item.setTextAlignment(Qt.AlignCenter)
-        self.statistic_table.setItem(0,2,error_item)
+        self.statistic_table.setItem(2,0,error_item)
 
         self.show()
 
@@ -270,12 +283,12 @@ class App(QWidget):
         h, w, ch = rgbImage.shape
         bytesPerLine = ch * w
         convertToQtFormat = QImage(rgbImage.data, w, h, bytesPerLine, QImage.Format_RGB888)
-        p = convertToQtFormat.scaled(648, 486, Qt.KeepAspectRatio)
+        p = convertToQtFormat.scaled(570, 760, Qt.KeepAspectRatio)
         self.cam.setPixmap(QPixmap.fromImage(p))
     
     def update_statistic(self, data):
         self.number_total += 1
-        if self.count == 84:
+        if(self.count == 84):
             self.count = 0
         
         while(self.cam_data[self.count] != 1):
@@ -283,7 +296,7 @@ class App(QWidget):
             
         total = QTableWidgetItem("{}".format(self.number_total))
         total.setTextAlignment(Qt.AlignCenter)
-        self.statistic_table.setItem(1,0,total)
+        self.statistic_table.setItem(0,1,total)
         
         tray_idx = self.count // 21
         row = 6 - self.count % 21 % 7
@@ -302,7 +315,7 @@ class App(QWidget):
             self.number_error += 1
             error = QTableWidgetItem("{}".format(self.number_error))
             error.setTextAlignment(Qt.AlignCenter)
-            self.statistic_table.setItem(1,2,error)
+            self.statistic_table.setItem(2,1,error)
 
             ng = QTableWidgetItem("NG")
             ng.setTextAlignment(Qt.AlignCenter)
@@ -327,7 +340,8 @@ class App(QWidget):
         data_cam = str(data)[1:-1].replace(", ", '').replace(' ', '').replace('\n','')
         self.cam_data = data
         ser.write(data_cam.encode('utf-8'))
-
+        print(data_cam)
+        
     def updateTimer(self):
         cr_time = QTime.currentTime()
         time = cr_time.toString('hh:mm AP')
@@ -337,9 +351,9 @@ class App(QWidget):
         print("START")
         self.th.start()
         # ser.write("{}".format(self.count).encode('utf-8'))
-        self.number_total, self.number_success, self.number_error = read_file.get_data_from_file(self.date, self.time)
+        
         ser.write("a".encode('utf-8'))
-        print(self.number_error)
+        # print(self.number_error)
 
     def clickStopButton(self):
         print("STOP")
@@ -356,13 +370,13 @@ class App(QWidget):
         # Reset statistic table
         # total = QTableWidgetItem("0")
         # total.setTextAlignment(Qt.AlignCenter)
-        # self.statistic_table.setItem(1,0,total)
+        # self.statistic_table.setItem(0,1,total)
         # success = QTableWidgetItem("0")
         # success.setTextAlignment(Qt.AlignCenter)
         # self.statistic_table.setItem(1,1,success)
         # error = QTableWidgetItem("0")
         # error.setTextAlignment(Qt.AlignCenter)
-        # self.statistic_table.setItem(1,2,error)
+        # self.statistic_table.setItem(2,1,error)
 
         # Rest information table
         for k in range(4):
@@ -384,7 +398,7 @@ class App(QWidget):
 
 class AlignWindow(QWidget):
     def __init__(self):
-        super(AlignWindow, self).__init__(None, Qt.WindowStaysOnTopHint)
+        super(AlignWindow, self).__init__(None, Qt.WindowStaysOnTopHint | Qt.FramelessWindowHint)
         self.title = "CALIBRATION"
         self.left = 1300; self.top = 550
         self.width = 500; self.height = 500
@@ -399,6 +413,7 @@ class AlignWindow(QWidget):
         self.setGeometry(self.left, self.top, self.width, self.height)
         self.setStyleSheet("background-color: rgb(171, 171, 171);")
         # self.setWindowFlags(Qt.FramelessWindowHint)
+        # self.setWindowFlags(Qt.WindowStaysOnTopHint)
 
         # OK button
         self.up_button = QPushButton("⇧",self)

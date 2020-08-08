@@ -31,7 +31,7 @@ def get_data_from_file(date, time):
 
 def write_data_to_file(date, time, data):
     file_name = "/home/pi/mcnex_v2/data/{}/{}.txt".format(date, time)
-    f = open(file_name, 'a+')
+    f = open(file_name, 'w+')
     f.seek(0)
     f.write("Total camera tested: {}\n".format(data[0]))
     f.write("Number camera success: {}\n".format(data[1]))

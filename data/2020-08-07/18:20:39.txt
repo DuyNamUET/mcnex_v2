@@ -1,0 +1,20 @@
+Total camera tested: 121
+Number camera success: 111
+Number camera error: 10
+---------------
+Total camera tested: 121
+Number camera success: 111
+Number camera error: 10
+---------------
+Total camera tested: 121
+Number camera success: 111
+Number camera error: 10
+---------------
+Total camera tested: 122
+Number camera success: 111
+Number camera error: 11
+---------------
+Total camera tested: 122
+Number camera success: 111
+Number camera error: 11
+---------------

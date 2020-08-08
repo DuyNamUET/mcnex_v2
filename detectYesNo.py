@@ -174,12 +174,12 @@ def runDetectImage(img):
         count += 1
     return data
 
-# if __name__ == "__main__":
+if __name__ == "__main__":
     # WARNING - Get area to processing
     # get_mask("image/cam/0.png")
     # get_data_with_fixed_coords(top_dir="image/cam", out_dir="new_cropped/cam")
     # get_data_with_fixed_coords(top_dir="image/no_cam", out_dir="new_cropped/no_cam")
     
     # out = 
-    # testWithImage("image/cam")
+    testWithImage("image/cam")
     # print(out)
