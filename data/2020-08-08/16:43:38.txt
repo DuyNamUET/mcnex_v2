@@ -1,0 +1,4 @@
+Total camera tested: 3
+Number camera success: 3
+Number camera error: 0
+---------------

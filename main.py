@@ -19,7 +19,7 @@ def get_serial_port():
     for i in ports:
         port = str(i).split(' ')[0]
         # print(port)
-        if port == "/dev/ttyACM0" or port == "/dev/ttyACM1" or port == "/dev/tty    USB0":   
+        if port == "/dev/ttyACM0" or port == "/dev/ttyACM1" or port == "/dev/ttyUSB0":   
             return port
 
 port = get_serial_port()
@@ -62,7 +62,7 @@ class Thread(QThread):
                     resize_img = cv2.resize(image, (972,729))
 
                     cam += detectYesNo.runDetectImage(resize_img)
-                    time.sleep(0.25)
+                    time.sleep(0.3)
                     self.rawCapture.truncate(0)
                     if _ == 2:
                         # send image
@@ -336,6 +336,17 @@ class App(QWidget):
                         # self.tray[k].item(i,j).setBackground(QColor(250,30,50))
                     c += 1
         # Update current data
+        # print(data[:self.count])
+        for i in range(self.count):
+            if(data[i] == 1):
+                tray_idx = i // 21
+                row = 6 - i % 21 % 7
+                col = i % 21 // 7
+                
+                ok = QTableWidgetItem("OK")
+                ok.setTextAlignment(Qt.AlignCenter)
+                self.tray[tray_idx].setItem(row, col, ok)
+                self.tray[tray_idx].item(row,col).setBackground(QColor(67, 138, 94))
         data[:self.count] = 0
         data_cam = str(data)[1:-1].replace(", ", '').replace(' ', '').replace('\n','')
         self.cam_data = data
