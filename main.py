@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 from PyQt5.QtWidgets import *
 from PyQt5.QtGui import *
 from PyQt5.QtCore import *
@@ -54,7 +56,7 @@ class Thread(QThread):
         while True:           
             cmd = receive_from_mega(ser)
             # cmd = "9"
-            if cmd == "9":
+            if cmd == '9':
                 cam = np.zeros(84)
                 for _ in range(3):
                     self.camera.capture(self.rawCapture, format="bgr")
@@ -62,7 +64,7 @@ class Thread(QThread):
                     resize_img = cv2.resize(image, (972,729))
 
                     cam += detectYesNo.runDetectImage(resize_img)
-                    time.sleep(0.3)
+                    time.sleep(0.18)
                     self.rawCapture.truncate(0)
                     if _ == 2:
                         # send image
@@ -76,7 +78,6 @@ class Thread(QThread):
                 # send data of Camera
                 # ser.write(data_cam.encode('utf-8'))
                 self.data.emit(cam)
-
                 
             elif cmd == "1":
                 self.statistic.emit("1")

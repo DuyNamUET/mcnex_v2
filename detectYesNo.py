@@ -36,7 +36,7 @@ def get_mask(img_path):
             break
     cv2.destroyAllWindows()
     # print(areas)
-    pickle.dump(areas, open("center.txt", 'wb'))
+    pickle.dump(areas, open("/home/pi/mcnex_v2/center.txt", 'wb'))
 
 def kl_distance(dist1, dist2, norm=True):
     
@@ -103,7 +103,7 @@ def having_cam(img, no_cam_dir, cam_dir, channel=2):
     # print(s_cam, s_no_cam)
     return s_cam < s_no_cam 
 
-def get_data_with_fixed_coords(top_dir="data/test", coords_file="center.txt", out_dir="cropped1", ext=["png", "jpg"], save_to_index=True):
+def get_data_with_fixed_coords(top_dir="data/test", coords_file="/home/pi/mcnex_v2/center.txt", out_dir="cropped1", ext=["png", "jpg"], save_to_index=True):
     
     if not os.path.exists("{}".format(out_dir)):
         os.makedirs(out_dir)
@@ -131,7 +131,7 @@ def get_data_with_fixed_coords(top_dir="data/test", coords_file="center.txt", ou
             i+=1
 
 def testWithImage(dir, ext=["png", "jpg"]):
-    areas = pickle.load(open("center.txt", 'rb'))
+    areas = pickle.load(open("/home/pi/mcnex_v2/center.txt", 'rb'))
     all_img_paths = []
     for i in glob.glob("{}/*".format(dir)):
         if i.split(".")[-1] in ext:
@@ -143,8 +143,8 @@ def testWithImage(dir, ext=["png", "jpg"]):
         count = 0
         for area in areas:
             roi = img[area[0][1]:area[1][1], area[0][0]:area[1][0]]
-            th = having_cam(roi, "new_cropped/no_cam/{}".format(count),\
-                                "new_cropped/cam/{}".format(count))
+            th = having_cam(roi, "/home/pi/mcnex_v2/new_cropped/no_cam/{}".format(count),\
+                                "/home/pi/mcnex_v2/new_cropped/cam/{}".format(count))
             if th > 0:
                 img = cv2.rectangle(img, area[0], area[1], (0, 255, 0), 1)
                 data.append(1)
@@ -158,13 +158,13 @@ def testWithImage(dir, ext=["png", "jpg"]):
         # return data
 
 def runDetectImage(img):
-    areas = pickle.load(open("center.txt", 'rb'))
+    areas = pickle.load(open("/home/pi/mcnex_v2/center.txt", 'rb'))
     data = np.array([])  # data of center 
     count = 0
     for area in areas:
         roi = img[area[0][1]:area[1][1], area[0][0]:area[1][0]]
-        th = having_cam(roi, "new_cropped/no_cam/{}".format(count),\
-                            "new_cropped/cam/{}".format(count))
+        th = having_cam(roi, "/home/pi/mcnex_v2/new_cropped/no_cam/{}".format(count),\
+                            "/home/pi/mcnex_v2/new_cropped/cam/{}".format(count))
         if th > 0:
             # img = cv2.rectangle(img, area[0], area[1], (0, 255, 0), 1)
             data = np.append(data, np.array([1]))

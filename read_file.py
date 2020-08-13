@@ -12,10 +12,10 @@ def get_date_time():
 def get_data_from_file(date, time):
     total = 0; success = 0; error = 0
     
-    dir = "data/{}".format(date)
+    dir = "home/pi/mcnex_v2/data/{}".format(date)
     if not os.path.exists(dir):
         os.makedirs(dir)
-    name = "/home/pi/mcnex_v2/{}/{}.txt".format(dir, time)
+    name = "{}/{}.txt".format(dir, time)
     f = open(name,'w+')
     if os.stat(name).st_size == 0:
         f.write("Total camera tested: {}\n".format(total))
@@ -30,8 +30,12 @@ def get_data_from_file(date, time):
     return [total, success, error]
 
 def write_data_to_file(date, time, data):
-    file_name = "/home/pi/mcnex_v2/data/{}/{}.txt".format(date, time)
-    f = open(file_name, 'w+')
+    dir = "home/pi/mcnex_v2/data/{}".format(date)
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+    name = "{}/{}.txt".format(dir, time)
+    # file_name = "/home/pi/mcnex_v2/data/{}/{}.txt".format(date, time)
+    f = open(name, 'w+')
     f.seek(0)
     f.write("Total camera tested: {}\n".format(data[0]))
     f.write("Number camera success: {}\n".format(data[1]))

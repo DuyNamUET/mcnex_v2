@@ -23,4 +23,4 @@ if __name__ == "__main__":
         elif key == ord('s'):
             cv2.imwrite('image/{}.png'.format(count), resize_img)
             count += 1
-        rawCapture.truncate(0)
+        rawCapture.truncate(0)  
